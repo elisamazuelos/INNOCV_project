@@ -1,0 +1,411 @@
+{
+	"info": {
+		"_postman_id": "20981cbc-f6d8-4039-bd1b-3faba923c733",
+		"name": "Pet Store Elisa Mazuelos",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "18820669"
+	},
+	"item": [
+		{
+			"name": "Caso de prueba 1: crea un usuario",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.set(\"firstName\", pm.variables.replaceIn(\"{{$randomFirstName}}\"));\r",
+							"pm.collectionVariables.set(\"lastName\", pm.variables.replaceIn(\"{{$randomLastName}}\"));\r",
+							"pm.collectionVariables.set(\"email\", pm.variables.replaceIn(\"{{$randomEmail}}\"));\r",
+							"pm.variables.set(\"password\", pm.variables.replaceIn(\"{{$randomPassword}}\"));\r",
+							"pm.variables.set(\"phone\", pm.variables.replaceIn(\"{{$randomPhoneNumber}}\"));"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"pm.test(\"Response contains user id\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.message).to.eql(pm.collectionVariables.get(\"userId\"));\r",
+							"});\r",
+							"pm.globals.set(\"currentUsername\", pm.collectionVariables.get(\"username\"));"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"id\": {{userId}},\r\n    \"username\": \"{{username}}\",\r\n    \"firstName\": \"{{firstName}}\",\r\n    \"lastName\": \"{{lastName}}\",\r\n    \"email\": \"{{email}}\",\r\n    \"password\": \"{{password}}\",\r\n    \"phone\": \"{{phone}}\",\r\n    \"userStatus\": 0\r\n}"
+				},
+				"url": {
+					"raw": "{{url}}/{{version}}/user",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"{{version}}",
+						"user"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Caso de prueba 2: consulta el usuario creado",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"pm.test(\"User has correct id\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.id).to.eql(parseInt(pm.collectionVariables.get(\"userId\")));\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{url}}/{{version}}/user/{{currentUsername}}",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"{{version}}",
+						"user",
+						"{{currentUsername}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Caso de prueba 3: ejemplos de respuestas de findByStatus",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const statusList = pm.variables.get(\"remainingPetStatus\") != null ? pm.variables.get(\"remainingPetStatus\") : [\"available\", \"pending\", \"sold\"];\r",
+							"pm.variables.set(\"petStatus\", statusList[0]);\r",
+							"pm.variables.set(\"remainingPetStatus\", statusList.slice(1));"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"pm.collectionVariables.set(\"example_\" + pm.variables.get(\"petStatus\"), JSON.stringify(pm.response.json()[0]));\r",
+							"if (pm.variables.get(\"remainingPetStatus\").length > 0) {\r",
+							"    postman.setNextRequest(pm.info.requestName);\r",
+							"} else {\r",
+							"    postman.setNextRequest(\"Caso de prueba 4: actualiza el usuario\");\r",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{url}}/{{version}}/pet/findByStatus?status={{petStatus}}",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"{{version}}",
+						"pet",
+						"findByStatus"
+					],
+					"query": [
+						{
+							"key": "status",
+							"value": "{{petStatus}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Caso de prueba 4: actualiza el usuario",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"pm.test(\"Response contains user id\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.message).to.eql(pm.collectionVariables.get(\"userId\"));\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"id\": {{userId}},\r\n    \"username\": \"{{username}}\",\r\n    \"firstName\": \"{{firstName}}\",\r\n    \"lastName\": \"{{lastName}}\",\r\n    \"email\": \"{{email}}\",\r\n    \"password\": \"{{updatedPassword}}\",\r\n    \"phone\": \"{{updatedPhone}}\",\r\n    \"userStatus\": 0\r\n}"
+				},
+				"url": {
+					"raw": "{{url}}/{{version}}/user/{{currentUsername}}",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"{{version}}",
+						"user",
+						"{{currentUsername}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Caso de prueba 5: consulta de nuevo el usuario",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"pm.test(\"User has correct id\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.id).to.eql(parseInt(pm.collectionVariables.get(\"userId\")));\r",
+							"});\r",
+							"pm.test(\"User has correct username\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.username).to.eql(pm.collectionVariables.get(\"username\"));\r",
+							"});\r",
+							"pm.test(\"User has updated password\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.password).to.eql(pm.collectionVariables.get(\"updatedPassword\"));\r",
+							"});\r",
+							"pm.test(\"User has updated phone\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.phone).to.eql(pm.collectionVariables.get(\"updatedPhone\"));\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{url}}/{{version}}/user/{{currentUsername}}",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"{{version}}",
+						"user",
+						"{{currentUsername}}"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "userId",
+			"value": "1047",
+			"type": "string"
+		},
+		{
+			"key": "username",
+			"value": "maricarmen_perez",
+			"type": "string"
+		},
+		{
+			"key": "updatedPassword",
+			"value": "654321",
+			"type": "string"
+		},
+		{
+			"key": "updatedPhone",
+			"value": "600000000",
+			"type": "string"
+		},
+		{
+			"key": "firstName",
+			"value": ""
+		},
+		{
+			"key": "lastName",
+			"value": ""
+		},
+		{
+			"key": "email",
+			"value": ""
+		},
+		{
+			"key": "example_available",
+			"value": ""
+		},
+		{
+			"key": "example_pending",
+			"value": ""
+		},
+		{
+			"key": "example_sold",
+			"value": ""
+		}
+	]
+}
